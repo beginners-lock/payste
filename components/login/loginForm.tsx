@@ -1,16 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export default function LoginForm(){
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = (data: z.infer<typeof loginSchema>) => {
+    console.log(data);
+    // Handle login logic here
+  };
 
   return(
-    <form className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email" className="text-foreground">
           Email
@@ -19,10 +32,10 @@ export default function LoginForm(){
           id="email"
           type="email"
           placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
           className="bg-input/30 border-input/50 placeholder:text-muted-foreground/60"
         />
+        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
       </div>
 
       <div className="space-y-2">
@@ -33,10 +46,10 @@ export default function LoginForm(){
           id="password"
           type="password"
           placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          {...register("password")}
           className="bg-input/30 border-input/50 placeholder:text-muted-foreground/60"
         />
+        {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
       </div>
 
       <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
