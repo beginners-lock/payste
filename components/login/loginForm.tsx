@@ -4,26 +4,41 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { UserEmailSignin } from "@/service/user-auth.service";
+import { toast } from "sonner";
+import { Spinner } from "../ui/spinner";
 
 const loginSchema = z.object({
   email: z.email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean(),
 });
 
+type LoginSchemaType = z.infer<typeof loginSchema>
+
 export default function LoginForm(){
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      rememberMe: false
+    }
   });
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    console.log(data);
-    // Handle login logic here
-  };
+  const onSubmit = handleSubmit(async ({ email, password, rememberMe }) => {
+    const response = await UserEmailSignin(email, password, rememberMe)
+
+    if(response.success){
+      toast.success('User signin successful')
+    }else{
+      toast.error(response.message)
+    }
+  });
 
   return(
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email" className="text-foreground">
           Email
@@ -44,8 +59,19 @@ export default function LoginForm(){
         {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Checkbox id="rememberMe" {...register("rememberMe")} />
+        <Label htmlFor="rememberMe" className="text-foreground">
+          Remember me
+        </Label>
+      </div>
+
       <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-        Login
+        {
+          isSubmitting ?
+            <Spinner />
+          : 'Login'
+        }
       </Button>
     </form>
   )
