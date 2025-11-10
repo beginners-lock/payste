@@ -6,7 +6,7 @@ export default function GoogleButton(){
     <Button
       type="button"
       variant="outline"
-      className="w-full gap-2 border-border/50 bg-input/30 hover:bg-input/50"
+      className="w-full gap-2 border-border/50 bg-input/30"
     >
       <Chrome className="h-4 w-4" />
       Continue with Google

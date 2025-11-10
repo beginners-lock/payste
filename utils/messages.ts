@@ -1,0 +1,1 @@
+export const PROCESSING_ERROR = 'An error occured while processing.'

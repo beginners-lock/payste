@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Lock } from "lucide-react"
 import LoginForm from "@/components/login/loginForm"
 import GoogleButton from "@/components/auth/googleButton"
+import { SIGNUP_PAGE } from "@/utils/routes"
 
 export default function LoginPage() {
   return (
@@ -11,9 +12,6 @@ export default function LoginPage() {
         <div className="w-full max-w-sm space-y-8">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Lock className="h-6 w-6 text-primary-foreground" />
-            </div>
             <span className="text-xl font-bold text-foreground">Payste</span>
           </div>
 
@@ -42,7 +40,7 @@ export default function LoginPage() {
           {/* Sign up link */}
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="font-medium text-primary hover:underline">
+            <Link href={SIGNUP_PAGE} className="font-medium text-primary hover:underline">
               Sign up
             </Link>
           </p>
