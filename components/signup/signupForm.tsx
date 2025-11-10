@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { UserEmailSignup } from "@/service/user-auth.service";
+import { toast } from "sonner";
+import { Spinner } from "../ui/spinner";
 
 const signupSchema = z.object({
   firstName: z.string().nonempty("First name is required").min(2, "Minimum of 2 characters"),
@@ -14,18 +17,26 @@ const signupSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+type SignupSchemaType = z.infer<typeof signupSchema>
+
 export default function SignupForm(){
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm<SignupSchemaType>({
     resolver: zodResolver(signupSchema),
   });
 
-  const onSubmit = (data: z.infer<typeof signupSchema>) => {
-    console.log(data);
-    // Handle signup logic here
-  };
+  const onSubmit = handleSubmit(async ({ firstName, lastName, email, password }) => {
+    const name = `${firstName} ${lastName}`
+    const response = await UserEmailSignup(name, email, password)
+
+    if(response.success){
+      toast.success('Signup successful')
+    }else{
+      toast.error(response.message)
+    }
+  });
   
   return(
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="firstName" className="text-foreground">
@@ -68,7 +79,11 @@ export default function SignupForm(){
       </div>
 
       <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-        Sign Up
+        {
+          isSubmitting ?
+            <Spinner />
+          : 'Sign Up'
+        }
       </Button>
     </form>
   )
