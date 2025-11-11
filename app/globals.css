@@ -74,6 +74,11 @@
   --sidebar-ring: oklch(0.55 0.16 255);
 }
 
+
+@theme {
+  --breakpoint-md: 480px;
+}
+
 @theme inline {
   --font-sans: "Geist", "Geist Fallback";
   --font-mono: "Geist Mono", "Geist Mono Fallback";

@@ -9,13 +9,16 @@ import { useState } from "react"
 import { CREATE_PAGE, DASHBOARD_PAGE, LOGIN_PAGE, PLAN_PAGE } from "@/utils/routes"
 import { Badge } from "../ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { UserSignOut } from "@/service/user-auth.service"
+import { userSignOut } from "@/service/user-auth.service"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
+import { User } from "@/db/types"
+import { useUserPlan } from "@/hooks/useUserPlan"
 
 export function Sidebar() {
   const router = useRouter()
   const { data, isPending } = authClient.useSession()
+  const { plan, pending } = useUserPlan(data?.user.id)
   const [loading, setLoading] = useState(false)
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
@@ -30,7 +33,7 @@ export function Sidebar() {
 
   const signout = async () => {
     setLoading(true);
-    const response = await UserSignOut()
+    const response = await userSignOut()
 
     if(response.success){
       toast.success('User signout successful')
@@ -51,15 +54,15 @@ export function Sidebar() {
       {/* Mobile toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-40 md:hidden p-2 hover:bg-card rounded-lg"
+        className="fixed top-4 left-4 z-40 lg:hidden p-2 bg-black/10 hover:bg-card rounded-lg cursor-pointer"
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-30 h-screen w-64 border-r border-border bg-card flex flex-col transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        className={`fixed lg:relative z-30 h-screen w-64 border-r border-border bg-card flex flex-col transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
@@ -75,7 +78,12 @@ export function Sidebar() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-foreground truncate">{data.user.name}</p>
-                <Badge>Free Plan</Badge>
+                
+                {
+                  (pending || !plan) ?
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  : <Badge className="capitalize">{plan} Plan</Badge>
+                }
               </div>
               
               <p className="text-sm  text-foreground truncate">{data.user.email}</p>
@@ -120,7 +128,7 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile overlay */}
-      {isOpen && <div className="fixed inset-0 z-20 bg-black/20 md:hidden" onClick={() => setIsOpen(false)} />}
+      {isOpen && <div className="fixed inset-0 z-20 bg-black/20 lg:hidden" onClick={() => setIsOpen(false)} />}
     </>
   )
 }

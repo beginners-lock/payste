@@ -3,27 +3,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { PasteCard } from "@/components/dashboard/pasteCard"
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { getUserPaystes } from "@/service/payste.service"
 
-export default function DashboardPage() {
-  // Mock data - in real app, fetch from database
-  const pastes = [
-    {
-      id: "1",
-      title: "Hello World Script",
-      content: "console.log('Hello World')...",
-      createdAt: "2025-11-09",
-      expiryAt: "2025-11-10",
-      isPro: false,
-    },
-    {
-      id: "2",
-      title: "Database Query",
-      content: "SELECT * FROM users WHERE...",
-      createdAt: "2025-11-08",
-      expiryAt: "2025-11-15",
-      isPro: true,
-    },
-  ]
+export default async function DashboardPage() {
+  const paystes = await getUserPaystes()
 
   return (
     <div className="flex-1 p-6 md:p-8">
@@ -42,16 +25,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Pastes grid */}
-      {pastes.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {pastes.map((paste) => (
+      {paystes.length > 0 ? (
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {paystes.map((paste) => (
             <PasteCard key={paste.id} paste={paste} />
           ))}
         </div>
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No pastes yet</p>
+            <p className="text-muted-foreground mb-4 font-medium">No pastes yet</p>
             <Link href="/dashboard/create">
               <Button>Create your first paste</Button>
             </Link>

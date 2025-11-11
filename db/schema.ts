@@ -62,13 +62,15 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
-export const paste = pgTable("paste", {
+export const payste = pgTable("payste", {
   id: text("id").primaryKey(),
+  title: text("title").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
 });
+
 
 /*
 export const payments = pgTable('payments', {

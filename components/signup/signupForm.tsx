@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { UserEmailSignup } from "@/service/user-auth.service";
+import { userEmailSignup } from "@/service/user-auth.service";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 import { redirect } from "next/navigation";
@@ -28,7 +28,7 @@ export default function SignupForm(){
 
   const onSubmit = handleSubmit(async ({ firstName, lastName, email, password }) => {
     const name = `${firstName} ${lastName}`
-    const response = await UserEmailSignup(name, email, password)
+    const response = await userEmailSignup(name, email, password)
 
     if(response.success){
       toast.success('Signup successful')

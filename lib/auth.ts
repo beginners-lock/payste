@@ -19,5 +19,14 @@ export const auth = betterAuth({
     schema,
     provider: "pg", // or "mysql", "sqlite"
   }),
+  user: {
+    additionalFields: {
+      plan: {
+        type: "string" as const,
+        required: true,
+        defaultValue: 'free'
+      }
+    }
+  },
   plugins: [nextCookies()]
 });

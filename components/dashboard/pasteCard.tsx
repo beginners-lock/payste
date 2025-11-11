@@ -4,19 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { Payste } from "@/db/types"
 
-interface Paste {
-  id: string
-  title: string
-  content: string
-  createdAt: string
-  expiryAt: string
-  isPro: boolean
-}
-
-export function PasteCard({ paste }: { paste: Paste }) {
+export function PasteCard({ paste }: { paste: Payste }) {
   return (
-    <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
+    <Card className="col-span-1 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
       <CardHeader>
         <Link href={`/dashboard/paste/${paste.id}`}>
           <CardTitle className="hover:text-primary transition-colors">{paste.title}</CardTitle>
@@ -28,11 +20,11 @@ export function PasteCard({ paste }: { paste: Paste }) {
         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
           <div>
             <p className="font-semibold text-foreground">Created</p>
-            <p>{paste.createdAt}</p>
+            <p>{paste.createdAt.toLocaleString()}</p>
           </div>
           <div>
             <p className="font-semibold text-foreground">Expires</p>
-            <p>{paste.expiryAt}</p>
+            <p>{paste.expiresAt.toLocaleString()}</p>
           </div>
         </div>
 

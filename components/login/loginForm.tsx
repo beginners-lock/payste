@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { UserEmailSignin } from "@/service/user-auth.service";
+import { userEmailSignin } from "@/service/user-auth.service";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 import { redirect } from "next/navigation";
@@ -30,7 +30,7 @@ export default function LoginForm(){
   });
 
   const onSubmit = handleSubmit(async ({ email, password, rememberMe }) => {
-    const response = await UserEmailSignin(email, password, rememberMe)
+    const response = await userEmailSignin(email, password, rememberMe)
 
     if(response.success){
       toast.success('User signin successful')
