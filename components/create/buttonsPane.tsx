@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { deleteUserPayste } from "@/service/payste.service"
 import { useRouter } from "next/navigation"
-import { DASHBOARD_PAGE } from "@/utils/routes"
+import { DASHBOARD_PAGE, EDIT_PAGE } from "@/utils/routes"
 import { Spinner } from "../ui/spinner"
 
 interface Props {
@@ -20,7 +20,6 @@ export default function ButtonsPane({ id, content }: Props){
 
   const [openDialog, setOpenDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
 
   
   const handleCopy = async () => {
@@ -28,7 +27,11 @@ export default function ButtonsPane({ id, content }: Props){
     toast.success('Content copied to clipboard')
   }
 
-  const deletePayste = async (id: string) => {
+  const handleEdit = () => {
+    router.push(`${EDIT_PAGE}/${id}`)
+  }
+
+  const handleDelete = async (id: string) => {
     setDeleting(true)
     const response = await deleteUserPayste(id)
 
@@ -49,7 +52,7 @@ export default function ButtonsPane({ id, content }: Props){
         <Copy className="h-5 w-5" />
       </Button>
 
-      <Button variant="outline" size="icon" onClick={() => setIsEditing(!isEditing)}>
+      <Button variant="outline" size="icon" onClick={handleEdit}>
         <Edit className="h-5 w-5" />
       </Button>
 
@@ -68,7 +71,7 @@ export default function ButtonsPane({ id, content }: Props){
             <AlertDialogCancel disabled={deleting}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction disabled={deleting} className="bg-red-700 hover:bg-red-700/90" onClick={(e)=>{ e.preventDefault(); deletePayste(id); }}>
+            <AlertDialogAction disabled={deleting} className="bg-red-700 hover:bg-red-700/90" onClick={(e)=>{ e.preventDefault(); handleDelete(id); }}>
               {
                 deleting ?
                   <Spinner/>

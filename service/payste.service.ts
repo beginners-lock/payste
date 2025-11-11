@@ -100,3 +100,64 @@ export async function deleteUserPayste(id: string){
 		return { success: false, message, data: null }
 	}
 }
+
+export async function getPaysteById(paysteId: string){
+	try{
+		const user = await getAuthenticatedUser()
+
+		const response = await db.select().from(payste).where(eq(payste.id, paysteId)).limit(1)
+
+		if(response.length === 0){
+			throw new Error("Payste not found")
+		}
+
+		// Check if the payste belongs to the current user
+		if(response[0].userId !== user.id){
+			throw new Error("Unauthorized access to payste")
+		}
+
+		return response[0]
+	}catch(e){
+		console.log(`An error occured in getPaysteById:\n${e}`)
+		const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+		throw new Error(message)
+	}
+}
+
+export async function updateUserPayste(id: string, title?: string, content?: string){
+	try{
+		const user = await getAuthenticatedUser()
+
+		// First check if the payste exists and belongs to the user
+		const existingPayste = await db.select().from(payste).where(eq(payste.id, id)).limit(1)
+
+		if(existingPayste.length === 0){
+			throw new Error("Payste not found")
+		}
+
+		if(existingPayste[0].userId !== user.id){
+			throw new Error("Unauthorized access to payste")
+		}
+
+		// Prepare update data
+		const updateData: { title?: string; content?: string } = {}
+		if(title !== undefined) updateData.title = title || "Untitled Payste"
+		if(content !== undefined) updateData.content = content
+
+		// Only update if there's something to update
+		if(Object.keys(updateData).length === 0){
+			throw new Error("No valid fields to update")
+		}
+
+		const updatedPayste = await db.update(payste)
+			.set(updateData)
+			.where(eq(payste.id, id))
+			.returning({ id: payste.id })
+
+		return { success: true, message: "Payste updated successfully", data: { paysteId: updatedPayste[0].id } }
+	}catch(e){
+		console.log(`An error occured in updateUserPayste:\n${e}`)
+		const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+		return { success: false, message, data: null }
+	}
+}
