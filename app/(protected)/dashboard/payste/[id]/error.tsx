@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DASHBOARD_PAGE } from "@/utils/routes"
 import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -18,7 +19,7 @@ export default function PasteViewError({ error, reset }: ErrorPageProps) {
   }
 
   const handleGoBack = () => {
-    router.push("/dashboard")
+    router.push(DASHBOARD_PAGE)
   }
 
   return (
@@ -30,9 +31,9 @@ export default function PasteViewError({ error, reset }: ErrorPageProps) {
               <AlertTriangle className="h-8 w-8 text-destructive" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-destructive">Paste Not Found</CardTitle>
+          <CardTitle className="text-2xl text-destructive">Error</CardTitle>
           <CardDescription className="text-base">
-            We couldn't load the requested paste. It may have expired or been deleted.
+            We couldn&apos;t load the requested payste. Seems something&apos;s wrong.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

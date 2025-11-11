@@ -24,6 +24,7 @@ export default async function PasteViewPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
         <ButtonsPane
+          id={payste.id}
           content={payste.content}
         />
       </div>

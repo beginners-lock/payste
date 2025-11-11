@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { createUserPayste } from "@/service/payste.service"
 import { useRouter } from "next/navigation"
 import { PAYSTE_PAGE } from "@/utils/routes"
+import { Spinner } from "@/components/ui/spinner"
 
 const createPasteSchema = z.object({
   title: z.string().optional(),
@@ -89,7 +90,7 @@ export default function CreatePastePage() {
           {/* Actions */}
           <div className="flex gap-3">
             <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Paste"}
+              {isSubmitting ? <Spinner/> : "Create Paste"}
             </Button>
             <Button type="button" variant="outline" onClick={() => reset()}>
               Cancel
