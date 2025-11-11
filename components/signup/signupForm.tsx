@@ -9,6 +9,8 @@ import { z } from "zod";
 import { UserEmailSignup } from "@/service/user-auth.service";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
+import { redirect } from "next/navigation";
+import { DASHBOARD_PAGE } from "@/utils/routes";
 
 const signupSchema = z.object({
   firstName: z.string().nonempty("First name is required").min(2, "Minimum of 2 characters"),
@@ -30,6 +32,7 @@ export default function SignupForm(){
 
     if(response.success){
       toast.success('Signup successful')
+      redirect(DASHBOARD_PAGE)
     }else{
       toast.error(response.message)
     }
@@ -78,7 +81,7 @@ export default function SignupForm(){
         {errors.password && <p className="text-destructive text-xs">{errors.password.message}</p>}
       </div>
 
-      <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+      <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90">
         {
           isSubmitting ?
             <Spinner />

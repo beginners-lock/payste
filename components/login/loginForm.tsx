@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { UserEmailSignin } from "@/service/user-auth.service";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
+import { redirect } from "next/navigation";
+import { DASHBOARD_PAGE } from "@/utils/routes";
 
 const loginSchema = z.object({
   email: z.email("Invalid email address"),
@@ -32,6 +34,7 @@ export default function LoginForm(){
 
     if(response.success){
       toast.success('User signin successful')
+      redirect(DASHBOARD_PAGE)
     }else{
       toast.error(response.message)
     }
@@ -66,7 +69,7 @@ export default function LoginForm(){
         </Label>
       </div>
 
-      <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+      <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90">
         {
           isSubmitting ?
             <Spinner />

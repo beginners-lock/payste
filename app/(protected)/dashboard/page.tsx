@@ -1,5 +1,17 @@
-export default function DashboardPage(){
+import SignoutButton from "@/components/dashboard/signoutButton"
+import { auth } from "@/lib/auth" 
+import { headers } from "next/headers"
+
+export default async function DashboardPage(){
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
   return(
-    <div>Dashboard</div>
+    <div>
+      <p>Name: {session?.user.name}</p>
+      <p>Email: {session?.user.email}</p>
+      <SignoutButton/>
+    </div>
   )
 }

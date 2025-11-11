@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth"; //import the auth client
 import { PROCESSING_ERROR } from "@/utils/messages";
+import { headers } from "next/headers";
 
 export async function UserEmailSignup(name: string, email: string, password: string){
 	try{
@@ -31,6 +32,20 @@ export async function UserEmailSignin(email: string, password: string, rememberM
 		return { success: true }
 	}catch(e){
 		console.log(`An error occured in UserEmailSignin:\n${e}`)
+		const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR 
+		return { success: false, message }
+	}
+}
+
+export async function UserSignOut(){
+	try{
+		await auth.api.signOut({
+			headers: await headers()
+		})
+
+		return { success: true }
+	}catch(e){
+		console.log(`An error occured in UserForgotPassword:\n${e}`)
 		const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR 
 		return { success: false, message }
 	}
