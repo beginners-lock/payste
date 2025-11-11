@@ -31,7 +31,7 @@ export async function getUserPaystes(){
    }
  }
 
-export async function createUserPayste(title: string, content: string){
+export async function createUserPayste(title: string | undefined, content: string){
 	try{
 		const user = await getAuthenticatedUser()
 
@@ -41,8 +41,8 @@ export async function createUserPayste(title: string, content: string){
 		const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000)
 
 		const newPayste = await db.insert(payste).values({
-			id: crypto.randomUUID(), title, content,
-			userId: user.id, expiresAt
+			id: crypto.randomUUID(), title: title || "Untitle Payste", 
+      content, userId: user.id, expiresAt
 		}).returning({ id: payste.id })
 
 		return { success: true, message: "Payste created successfully", data: { paysteId: newPayste[0].id } }

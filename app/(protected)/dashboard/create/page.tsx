@@ -9,27 +9,32 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
+import { createUserPayste } from "@/service/payste.service"
+import { useRouter } from "next/navigation"
+import { PAYSTE_PAGE } from "@/utils/routes"
 
 const createPasteSchema = z.object({
   title: z.string().optional(),
-  content: z.string().min(1, "Content is required").max(10000, "Content must be less than 10,000 characters"),
+  content: z.string().nonempty("Content is required").min(10, "Com'on make it at least 10 characters").max(10000, "Content must be less than 10,000 characters"),
 })
 
 type CreatePasteSchemaType = z.infer<typeof createPasteSchema>
 
 export default function CreatePastePage() {
+  const router = useRouter()
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<CreatePasteSchemaType>({
     resolver: zodResolver(createPasteSchema),
   })
 
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      console.log("[v0] Creating paste with content:", data)
-      toast.success("Paste created successfully!")
+  const onSubmit = handleSubmit(async ({ title, content }) => {
+    const response = await createUserPayste(title, content)
+
+    if(!response.success){
+      toast.error(response.message)
+    }else{
+      router.push(`${PAYSTE_PAGE}/${response.data!.paysteId}`)
+      toast.success("Payste created successfully!")
       reset()
-    } catch (error) {
-      console.error("Error creating paste:", error)
-      toast.error("Failed to create paste. Please try again.")
     }
   })
 
