@@ -2,9 +2,17 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
+import { createPolarProCheckout } from "@/service/polar.service"
 import { Check } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
 
 export default function PlanPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+
   const features = [
     { name: "Paste limit", free: "5/day", pro: "Unlimited" },
     { name: "Expiry time", free: "24 hours", pro: "7 days" },
@@ -13,6 +21,20 @@ export default function PlanPage() {
     { name: "Analytics", free: false, pro: true },
     { name: "API access", free: false, pro: true },
   ]
+
+  const subscribeToProPlan = async () => {
+    setLoading(true)
+    const response = await createPolarProCheckout()
+
+    if(response.success && response.data){
+      toast.success(response.message)
+      router.push(response.data)
+    }else{
+      toast.error(response.message)
+    }
+
+    setLoading(false)
+  }
 
   return (
     <div className="flex-1 p-6 md:p-8">
@@ -62,7 +84,7 @@ export default function PlanPage() {
                 <CardTitle>Pro</CardTitle>
                 <CardDescription>For power users</CardDescription>
               </div>
-              <div className="bg-accent/20 text-accent px-3 py-1 rounded-full text-xs font-semibold">Popular</div>
+              <div className="bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-semibold">Popular</div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -72,30 +94,36 @@ export default function PlanPage() {
               </div>
               <p className="text-sm text-muted-foreground">Unlimited everything</p>
             </div>
-            <Button className="w-full bg-accent hover:bg-accent/90">Upgrade to Pro</Button>
+            <Button disabled={loading} onClick={subscribeToProPlan} className="w-full bg-secondary hover:bg-secondary/90">
+              {
+                loading ?
+                  <Spinner />
+                : 'Upgrade to Pro' 
+              }
+            </Button>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2 text-foreground">
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-secondary" />
                 Unlimited pastes
               </li>
               <li className="flex items-center gap-2 text-foreground">
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-secondary" />
                 7-day expiry
               </li>
               <li className="flex items-center gap-2 text-foreground">
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-secondary" />
                 Password protection
               </li>
               <li className="flex items-center gap-2 text-foreground">
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-secondary" />
                 Custom expiry time
               </li>
               <li className="flex items-center gap-2 text-foreground">
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-secondary" />
                 Analytics dashboard
               </li>
               <li className="flex items-center gap-2 text-foreground">
-                <Check className="h-4 w-4 text-accent" />
+                <Check className="h-4 w-4 text-secondary" />
                 API access
               </li>
             </ul>
