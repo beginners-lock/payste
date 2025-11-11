@@ -5,15 +5,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { toast } from "sonner"
+
+const createPasteSchema = z.object({
+  title: z.string().optional(),
+  content: z.string().min(1, "Content is required").max(10000, "Content must be less than 10,000 characters"),
+})
+
+type CreatePasteSchemaType = z.infer<typeof createPasteSchema>
 
 export default function CreatePastePage() {
-  const [content, setContent] = useState("")
-  const [title, setTitle] = useState("")
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<CreatePasteSchemaType>({
+    resolver: zodResolver(createPasteSchema),
+  })
 
-  const handleCreate = () => {
-    console.log("[v0] Creating paste with content:", { title, content })
-  }
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      console.log("[v0] Creating paste with content:", data)
+      toast.success("Paste created successfully!")
+      reset()
+    } catch (error) {
+      console.error("Error creating paste:", error)
+      toast.error("Failed to create paste. Please try again.")
+    }
+  })
 
   return (
     <div className="flex-1 p-6 md:p-8 max-w-4xl mx-auto">
@@ -28,17 +46,18 @@ export default function CreatePastePage() {
           <CardTitle>New Paste</CardTitle>
           <CardDescription>Free pastes expire in 24 hours. Pro pastes expire in 7 days.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
+        <form onSubmit={onSubmit} className="space-y-6">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Paste Title (Optional)</Label>
             <Input
               id="title"
               placeholder="Give your paste a title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              {...register("title")}
               className="bg-input border-border"
             />
+            {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
           </div>
 
           {/* Content */}
@@ -47,10 +66,10 @@ export default function CreatePastePage() {
             <Textarea
               id="content"
               placeholder="Paste your content here..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-96 font-mono text-sm bg-input border-border resize-none"
+              {...register("content")}
+              className="min-h-96 text-sm bg-input border-border resize-none"
             />
+            {errors.content && <p className="text-red-500 text-sm">{errors.content.message}</p>}
           </div>
 
           {/* Info */}
@@ -64,11 +83,14 @@ export default function CreatePastePage() {
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button className="bg-primary hover:bg-primary/90" onClick={handleCreate}>
-              Create Paste
+            <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Paste"}
             </Button>
-            <Button variant="outline">Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => reset()}>
+              Cancel
+            </Button>
           </div>
+        </form>
         </CardContent>
       </Card>
     </div>
