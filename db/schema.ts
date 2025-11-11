@@ -59,3 +59,25 @@ export const verification = pgTable("verification", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export const paste = pgTable("paste", {
+  id: text("id").primaryKey(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+});
+
+/*
+export const payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  polarCheckoutId: varchar('polar_checkout_id', { length: 255 }).unique().notNull(),  // Polar's session ID
+  pasteId: integer('paste_id').references(() => pastes.id, { onDelete: 'cascade' }),  // Link to paste
+  amount: integer('amount').notNull(),  // In cents (e.g., 100 = $1)
+  currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('pending'),  // 'pending', 'succeeded', 'failed'
+  metadata: text('metadata'),  // JSON string for extras (e.g., user notes)
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+*/
