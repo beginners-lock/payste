@@ -3,7 +3,10 @@
 import { auth } from "@/lib/auth";
 import { PAYSTE_PRO_PRICE_ID } from "@/utils/constants";
 import { PROCESSING_ERROR } from "@/utils/messages";
+import { error } from "console";
+import { createHmac, timingSafeEqual } from "crypto";
 import { headers } from "next/headers";
+import { NextRequest } from "next/server";
 
 export async function createPolarProCheckout(){
   try{
@@ -44,4 +47,46 @@ export async function createPolarProCheckout(){
     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
     return { success: false, message }
   }
+}
+
+export async function verifyWebhookSignature(req: NextRequest){
+  const body = await req.text(); // Raw body
+  const signature = req.headers.get("webhook-signature");
+  const timestamp = req.headers.get("webhook-timestamp");
+  const webhookId = req.headers.get("webhook-id");
+
+  if (!signature || !timestamp || !webhookId) {
+    return { error: "Missing headers", status: 400 };
+  }
+
+  const secret = Buffer.from(process.env.POLAR_WEBHOOK_SECRET || "").toString("base64");
+  const payload = `${webhookId}.${timestamp}.${body}`;
+
+  // Compute expected signature
+  const expectedSig = createHmac("sha256", secret)
+    .update(payload)
+    .digest("base64");
+
+  // Polar sends: "t=12345,v1=abc123" – extract v1
+  const sigParts = signature.split(",");
+  const receivedSig = sigParts.find(part => part.startsWith("v1="))?.split("=")[1];
+
+  if (!receivedSig || !timingSafeEqual(Buffer.from(expectedSig), Buffer.from(receivedSig))) {
+    console.error("Signature mismatch – dropping event");
+    return { error: "Invalid signature",  status: 403 };
+  }
+
+  return { error: undefined, status: 200 }
+}
+
+export async function upgradeUserToPro(){
+
+}
+
+export async function downgradeUserToFree(){
+  
+}
+
+export async function createPaymentRecord(){
+  
 }
