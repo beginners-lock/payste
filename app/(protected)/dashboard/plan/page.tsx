@@ -1,11 +1,13 @@
 "use client"
 
+import { queryClient } from "@/components/shared/providers"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import { useUserPlan } from "@/hooks/useUserPlan"
 import { authClient } from "@/lib/auth-client"
-import { createPolarProCheckout } from "@/service/polar.service"
+import { createPolarProCheckout, unsubscribeFromPro } from "@/service/polar.service"
+import { USER_PLAN } from "@/utils/keys"
 import { Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -40,6 +42,20 @@ export default function PlanPage() {
     setLoading(false)
   }
 
+  const unsubscribe = async () => {
+    setLoading(true)
+    const response = await unsubscribeFromPro()
+
+    if(response.success){
+      queryClient.invalidateQueries({ queryKey: [USER_PLAN, data?.user.id] })
+      toast.success(response.message)
+    }else{
+      toast.error(response.message)
+    }
+
+    setLoading(false)
+  }
+
   return (
     <div className="flex-1 p-6 md:p-8">
       {/* Header */}
@@ -61,9 +77,9 @@ export default function PlanPage() {
               <div className="text-3xl font-bold text-foreground">$0</div>
               <p className="text-sm text-muted-foreground">No credit card required</p>
             </div>
-            <Button variant={`${plan==='pro' ? 'default' : 'outline'}`} className={`${plan==='pro' ? 'w-full bg-secondary hover:bg-secondary/90' : 'w-full bg-transparent'}`} disabled={loading || pending || plan==='free'}>
+            <Button variant={`${plan==='pro' ? 'default' : 'outline'}`} className={`${plan==='pro' ? 'w-full bg-secondary hover:bg-secondary/90' : 'w-full bg-transparent'}`} disabled={loading || pending || plan==='free'} onClick={unsubscribe}>
               {
-                loading ?
+                loading && plan==='pro' ?
                   <Spinner />
                 : plan==='pro' ? 'Downgrade to Free' : `You're on this plan` 
               }
@@ -104,7 +120,7 @@ export default function PlanPage() {
             </div>
             <Button disabled={loading || pending || plan==='pro'} onClick={subscribeToProPlan} variant={`${plan==='free' ? 'default' : 'outline'}`} className={`${plan==='free' ? 'w-full bg-secondary hover:bg-secondary/90' : 'w-full bg-transparent'}`}>
               {
-                loading ?
+                loading && plan==='free' ?
                   <Spinner />
                 : plan==='free' ? 'Upgrade to Pro' : `You're on this plan` 
               }

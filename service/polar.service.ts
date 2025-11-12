@@ -2,8 +2,9 @@
 
 import { auth } from "@/lib/auth";
 import { PAYSTE_PRO_PRICE_ID } from "@/utils/constants";
-import { PROCESSING_ERROR } from "@/utils/messages";
-import { createHmac, timingSafeEqual } from "crypto";
+import { PROCESSING_ERROR, USER_NOT_FOUND } from "@/utils/messages";
+// import { createHmac, timingSafeEqual } from "crypto";
+import { validateEvent, WebhookVerificationError } from '@polar-sh/sdk/webhooks'
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 import { db } from "@/db/drizzle";
@@ -50,7 +51,7 @@ export async function createPolarProCheckout(){
     return { success: false, message }
   }
 }
-
+/*
 export async function verifyWebhookSignature(req: NextRequest){
   const body = await req.text(); // Raw body
   const signature = req.headers.get("webhook-signature");
@@ -79,74 +80,131 @@ export async function verifyWebhookSignature(req: NextRequest){
   }
 
   return { error: undefined, status: 200 }
+}*/
+
+export async function verifyWebhookSignature(req: NextRequest){
+  try{
+    if(!req.body) throw new Error('Missing body')
+
+    const rawBody = Buffer.from(await new Response(req.body).arrayBuffer());
+    const stringHeaders = Object.fromEntries(req.headers.entries()) as Record<string, string>;
+
+    validateEvent(rawBody, stringHeaders, process.env.POLAR_WEBHOOK_SECRET ?? '',)
+
+    return { error: undefined, status: 200, data: JSON.parse(rawBody.toString("utf8")) }
+  }catch(e){
+    if (e instanceof WebhookVerificationError) {
+      return { error: 'Webhook Verification Error', status: 403 }
+    }
+
+    return { error: "Invalid signature",  status: 403 };
+  }
+}
+
+export async function updateUserSubscriptionId(email: string, subscriptionId: string){
+  try{
+    // Update user subscriptionId
+    await db.update(user)
+      .set({ subscriptionId })
+      .where(eq(user.email, email))
+
+    return { success: true, message: "User subsription ID updated successfully" }
+  }catch(e){
+    console.log(`An error occured in updateUserSubscriptionId:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    return { success: false, message }
+  }
 }
 
 export async function upgradeUserToPro(email: string){
-   try{
-     // Find user by email
-     const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1)
+  try{
+    // Update user plan to pro
+    await db.update(user)
+      .set({ plan: 'pro' })
+      .where(eq(user.email, email))
 
-     if(existingUser.length === 0){
-       throw new Error("User not found")
-     }
-
-     // Update user plan to pro
-     await db.update(user)
-       .set({ plan: 'pro' })
-       .where(eq(user.email, email))
-
-     return { success: true, message: "User upgraded to Pro plan successfully" }
-   }catch(e){
-     console.log(`An error occured in upgradeUserToPro:\n${e}`)
-     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
-     return { success: false, message }
-   }
+    return { success: true, message: "User upgraded to Pro plan successfully" }
+  }catch(e){
+    console.log(`An error occured in upgradeUserToPro:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    return { success: false, message }
+  }
  }
 
 export async function downgradeUserToFree(email: string){
-   try{
-     // Find user by email
-     const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1)
+  try{
+    // Update user plan to free
+    await db.update(user)
+      .set({ plan: 'free', subscriptionId: null })
+      .where(eq(user.email, email))
 
-     if(existingUser.length === 0){
-       throw new Error("User not found")
-     }
-
-     // Update user plan to free
-     await db.update(user)
-       .set({ plan: 'free' })
-       .where(eq(user.email, email))
-
-     return { success: true, message: "User downgraded to Free plan successfully" }
-   }catch(e){
-     console.log(`An error occured in downgradeUserToFree:\n${e}`)
-     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
-     return { success: false, message }
-   }
- }
+    return { success: true, message: "User downgraded to Free plan successfully" }
+  }catch(e){
+    console.log(`An error occured in downgradeUserToFree:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    return { success: false, message }
+  }
+}
 
 export async function createPaymentRecord(email: string, orderId: string, currency: string, amount: number, paidAt: Date){
-   try{
-     // Check if payment record already exists to prevent duplicates
-     const existingPayment = await db.select().from(payments).where(eq(payments.orderId, orderId)).limit(1)
+  try{
+    // Check if payment record already exists to prevent duplicates
+    const existingPayment = await db.select().from(payments).where(eq(payments.orderId, orderId)).limit(1)
 
-     if(existingPayment.length > 0){
-       throw new Error("Payment record already exists")
-     }
+    if(existingPayment.length > 0){
+      throw new Error("Payment record already exists")
+    }
 
-     // Create payment record
-     await db.insert(payments).values({
-       email, orderId, currency: currency, amount, paidAt
-     })
+    // Create payment record
+    await db.insert(payments).values({
+      email, orderId, currency: currency, amount, paidAt
+    })
 
-     return { success: true, message: "Payment record created successfully" }
-   }catch(e){
-     console.log(`An error occured in createPaymentRecord:\n${e}`)
-     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
-     return { success: false, message }
-   }
- }
+    return { success: true, message: "Payment record created successfully" }
+  }catch(e){
+    console.log(`An error occured in createPaymentRecord:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    return { success: false, message }
+  }
+}
 
- export async function unsubscribeFromPro(email: string){
-  
- }
+export async function unsubscribeFromPro(){
+  try{
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+
+    if (!session?.user.id) throw new Error("Unauthorized");
+
+    const data = await db.select().from(user).where(eq(user.id, session.user.id))
+
+    if(data.length===0) throw new Error(USER_NOT_FOUND)
+
+    if(!data[0].subscriptionId) throw new Error('Subscription ID not found')
+
+    const baseUrl = process.env.NODE_ENV === "development"
+      ? "https://sandbox-api.polar.sh"
+      : "https://api.polar.sh";
+
+    const res = await fetch(`${baseUrl}/v1/subscriptions/${data[0].subscriptionId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${process.env.POLAR_SBX_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      // OPTIONAL: Immediate revoke (lose access NOW)
+      body: JSON.stringify({ revokeImmediately: true }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || "Failed to cancel subscription");
+    }
+
+    return { success: true, message: 'Successfully unsubscribed from Pro plan' }
+  }catch(e){
+    console.log(`An error occured in unsubscribeFromPro:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    return { success: false, message }
+  }
+}

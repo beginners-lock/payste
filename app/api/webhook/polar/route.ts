@@ -1,14 +1,14 @@
-import { createPaymentRecord, downgradeUserToFree, upgradeUserToPro, verifyWebhookSignature } from "@/service/polar.service"
+import { createPaymentRecord, downgradeUserToFree, updateUserSubscriptionId, upgradeUserToPro, verifyWebhookSignature } from "@/service/polar.service"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest){
-  /*const verificationResponse = await verifyWebhookSignature(request)
+  const verificationResponse = await verifyWebhookSignature(request)
 
   if(verificationResponse.error){
     return NextResponse.json({ error: verificationResponse.error }, { status: verificationResponse.status })
-  }*/
+  }
 
-  const jsonReq = await request.json()
+  const jsonReq = verificationResponse.data
   console.log(jsonReq)
   const { type, data } = jsonReq
 
@@ -24,6 +24,18 @@ export async function POST(request: NextRequest){
     }
   }
 
+  if(type==="subscription.created"){
+    const email = data.customer.email
+    // Indicated a transaction that waas made add it to the transactions table
+    const { id } = data
+    console.log(`Subscription ID: ${id}`)
+    console.log(`Subscription ID: ${data.id}`)
+
+    const response = await updateUserSubscriptionId(email, id)
+
+    if(!response.success) throw new Error(response.message)
+  }
+  
   if(type==="order.paid"){
     const email = data.customer.email
     // Indicated a transaction that waas made add it to the transactions table
