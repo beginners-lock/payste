@@ -70,8 +70,7 @@ export const payste = pgTable("payste", {
   expiresAt: timestamp("expires_at").notNull(),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
 });
-
-
+/*
 export const payments = pgTable('payments', {
   id: serial('id').primaryKey(),
   email: text("email").notNull(),  // User email
@@ -80,4 +79,4 @@ export const payments = pgTable('payments', {
   currency: varchar('currency', { length: 3 }).default('USD').notNull(),
   paidAt: timestamp('paid_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+});*/

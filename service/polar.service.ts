@@ -79,14 +79,32 @@ export async function verifyWebhookSignature(req: NextRequest){
   return { error: undefined, status: 200 }
 }
 
-export async function upgradeUserToPro(){
+export async function upgradeUserToPro(email: string){
+  try{
 
+  }catch(e){
+    console.log(`An error occured in upgradeUserToPro:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    throw new Error(message)
+  }
 }
 
-export async function downgradeUserToFree(){
-  
+export async function downgradeUserToFree(email: string){
+  try{
+
+  }catch(e){
+    console.log(`An error occured in downgradeUserToFree:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    throw new Error(message)
+  }
 }
 
-export async function createPaymentRecord(){
-  
+export async function createPaymentRecord(email: string, orderId: string, currency: string, amount: number, paidAt: Date){
+  try{
+
+  }catch(e){
+    console.log(`An error occured in createPaymentRecord:\n${e}`)
+    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+    throw new Error(message)
+  }
 }
