@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
+import { useUserPlan } from "@/hooks/useUserPlan"
+import { authClient } from "@/lib/auth-client"
 import { createPolarProCheckout } from "@/service/polar.service"
 import { Check } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -10,7 +12,9 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 export default function PlanPage() {
+  const { data } = authClient.useSession()
   const router = useRouter()
+  const { plan, pending } = useUserPlan(data?.user.id)
   const [loading, setLoading] = useState(false)
 
   const features = [
@@ -57,8 +61,12 @@ export default function PlanPage() {
               <div className="text-3xl font-bold text-foreground">$0</div>
               <p className="text-sm text-muted-foreground">No credit card required</p>
             </div>
-            <Button variant="outline" className="w-full bg-transparent">
-              You&apos;re on this plan
+            <Button variant={`${plan==='pro' ? 'default' : 'outline'}`} className={`${plan==='pro' ? 'w-full bg-secondary hover:bg-secondary/90' : 'w-full bg-transparent'}`} disabled={loading || pending || plan==='free'}>
+              {
+                loading ?
+                  <Spinner />
+                : plan==='pro' ? 'Downgrade to Free' : `You're on this plan` 
+              }
             </Button>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2 text-muted-foreground">
@@ -94,11 +102,11 @@ export default function PlanPage() {
               </div>
               <p className="text-sm text-muted-foreground">Unlimited everything</p>
             </div>
-            <Button disabled={loading} onClick={subscribeToProPlan} className="w-full bg-secondary hover:bg-secondary/90">
+            <Button disabled={loading || pending || plan==='pro'} onClick={subscribeToProPlan} variant={`${plan==='free' ? 'default' : 'outline'}`} className={`${plan==='free' ? 'w-full bg-secondary hover:bg-secondary/90' : 'w-full bg-transparent'}`}>
               {
                 loading ?
                   <Spinner />
-                : 'Upgrade to Pro' 
+                : plan==='free' ? 'Upgrade to Pro' : `You're on this plan` 
               }
             </Button>
             <ul className="space-y-3 text-sm">

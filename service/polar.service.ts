@@ -3,10 +3,12 @@
 import { auth } from "@/lib/auth";
 import { PAYSTE_PRO_PRICE_ID } from "@/utils/constants";
 import { PROCESSING_ERROR } from "@/utils/messages";
-import { error } from "console";
 import { createHmac, timingSafeEqual } from "crypto";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
+import { db } from "@/db/drizzle";
+import { user, payments } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function createPolarProCheckout(){
   try{
@@ -80,31 +82,71 @@ export async function verifyWebhookSignature(req: NextRequest){
 }
 
 export async function upgradeUserToPro(email: string){
-  try{
+   try{
+     // Find user by email
+     const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1)
 
-  }catch(e){
-    console.log(`An error occured in upgradeUserToPro:\n${e}`)
-    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
-    throw new Error(message)
-  }
-}
+     if(existingUser.length === 0){
+       throw new Error("User not found")
+     }
+
+     // Update user plan to pro
+     await db.update(user)
+       .set({ plan: 'pro' })
+       .where(eq(user.email, email))
+
+     return { success: true, message: "User upgraded to Pro plan successfully" }
+   }catch(e){
+     console.log(`An error occured in upgradeUserToPro:\n${e}`)
+     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+     return { success: false, message }
+   }
+ }
 
 export async function downgradeUserToFree(email: string){
-  try{
+   try{
+     // Find user by email
+     const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1)
 
-  }catch(e){
-    console.log(`An error occured in downgradeUserToFree:\n${e}`)
-    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
-    throw new Error(message)
-  }
-}
+     if(existingUser.length === 0){
+       throw new Error("User not found")
+     }
+
+     // Update user plan to free
+     await db.update(user)
+       .set({ plan: 'free' })
+       .where(eq(user.email, email))
+
+     return { success: true, message: "User downgraded to Free plan successfully" }
+   }catch(e){
+     console.log(`An error occured in downgradeUserToFree:\n${e}`)
+     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+     return { success: false, message }
+   }
+ }
 
 export async function createPaymentRecord(email: string, orderId: string, currency: string, amount: number, paidAt: Date){
-  try{
+   try{
+     // Check if payment record already exists to prevent duplicates
+     const existingPayment = await db.select().from(payments).where(eq(payments.orderId, orderId)).limit(1)
 
-  }catch(e){
-    console.log(`An error occured in createPaymentRecord:\n${e}`)
-    const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
-    throw new Error(message)
-  }
-}
+     if(existingPayment.length > 0){
+       throw new Error("Payment record already exists")
+     }
+
+     // Create payment record
+     await db.insert(payments).values({
+       email, orderId, currency: currency, amount, paidAt
+     })
+
+     return { success: true, message: "Payment record created successfully" }
+   }catch(e){
+     console.log(`An error occured in createPaymentRecord:\n${e}`)
+     const message = e instanceof Error ? e.message.length<100 ? e.message : PROCESSING_ERROR : PROCESSING_ERROR
+     return { success: false, message }
+   }
+ }
+
+ export async function unsubscribeFromPro(email: string){
+  
+ }
