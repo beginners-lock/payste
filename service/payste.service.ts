@@ -68,6 +68,19 @@ export async function getUserPayste(id: string){
 			throw new Error("Unauthorized access to payste")
 		}
 
+		// Check user plan and expiry
+		const userPlan = await getUserPlan(user.id)
+		const now = new Date()
+		const expired = response[0].expiresAt < now
+
+		if(expired){
+			const gracePeriodMs = userPlan === 'pro' ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000
+			const expiredPastGrace = now.getTime() - response[0].expiresAt.getTime() > gracePeriodMs
+			if(expiredPastGrace){
+				throw new Error("Payste has expired")
+			}
+		}
+
 		return response[0]
 	}catch(e){
 		console.log(`An error occured in getUserPayste:\n${e}`)
